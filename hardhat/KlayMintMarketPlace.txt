@@ -1,0 +1,1200 @@
+//SPDX-License-Identifier: Unlicense
+pragma solidity ^0.8.12;
+
+import "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+
+// Utils
+import "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+
+interface IOwnable {
+    function owner() external view returns (address);
+}
+
+interface IExchangeStruct {
+    /**
+        order param, arg
+
+        @Params - MiniExchange method's parameter & argument
+        @UnAssignOrders - MasterExchange method's parameter or MiniExchange method's parameter & argument
+        @AssignOrders - MasterExchange method's parameter or MiniExchange method's parameter & argument
+    */
+    struct Params {
+        bytes4 methodSig; // sellSig : 0x0f3cba00, buySig : 0xb9f5a720
+        address paymentToken; // erc20 contractAddress
+        address targetToken; // erc721 or erc1155 contractAddress
+        address maker; // order maker
+        uint256 tokenId; // tokenId
+        uint256 price; // price (무조건 개당가격)
+        uint256 amount; // token amount -> erc721 case 는 모두 1
+        uint256 turnIndex; // Indexer Struct 의 turnIndex 값, sellOrderBooks 또는 buyOrderBooks 에서 나온 값
+        uint256 endIndex; // Indexer Struct 의 endIndex 값, sellOrderBooks 또는 buyOrderBooks 에서 나온 값
+        uint256 expireTime; // 주문 유효기간, 0(지정하지않음) 일때는 2**256 - 1
+    }
+
+    struct UnAssignOrders {
+        address paymentToken; // erc20 contractAddress
+        address targetToken; // erc721 or erc1155 contractAddress
+        uint256 tokenId; // tokenId
+        uint256 price; // price (무조건 개당가격)
+        uint256 amount; // token amount -> erc721 case 는 모두 1
+        uint256 expireDate; // 주문 유효기간, 0(지정하지않음) 일때는 2**256 - 1
+    }
+
+    struct AssignOrders {
+        bytes4 methodSig; // sellSig : 0x0f3cba00, buySig : 0xb9f5a720
+        address paymentToken; // erc20 contractAddress
+        address targetToken; // erc721 or erc1155 contractAddress
+        address taker;  // 체결자 (msg sender)
+        uint256 tokenId; // tokenId
+        uint256 price; // price (무조건 개당가격)
+        uint256 amount; // amount, => 721 case : expireTime 을 0 으로 초기화, 1155 case : amount 뺄셈
+        uint256 orderIndex; // orderIndex
+    }
+
+    /**
+        오더북을 리턴할 때, 쓰이는 구조체
+
+        판매중인 모든 토큰을 볼 때 : MasterOrderBook[]
+        토큰 하나의 오더북을 볼 때 : MasterOrderBook
+
+        return Rule =>
+                     groupBy => tokenId => price
+                     sortBy => createdAt
+
+
+    */
+    struct MasterOrderBook {
+        uint256 tokenId;
+        MasterOrders[] orders;
+    }
+    struct MasterOrders {
+        uint256 price;
+        uint256 amount;
+        MiniOrder[] order;
+    }
+    struct MiniOrder {
+        address maker;
+        uint256 amount;
+        uint256 expireTime;
+        uint256 orderIndex;
+    }
+}
+
+interface IMiniExchangeStore is IExchangeStruct {
+    function addOrder(Params memory order) external returns (uint256 orderIndex);
+    function removeOrder(AssignOrders memory order) external;
+    function setOrderBook(bytes4 methodSig, address paymentToken, address targetToken, uint256 tokenId, uint256 price, uint amount, uint orderIndex) external;
+    function setTurnIndex(bytes4 methodSig, address paymentToken, address targetToken, uint256 tokenId, uint256 price, uint orderIndex) external;
+
+    function addTokenId (bytes4 methodSig, address paymentToken, address targetToken, uint256 tokenId) external;
+    function removeTokenId (bytes4 methodSig, address paymentToken, address targetToken, uint256 tokenId) external;
+    function addPrice (bytes4 methodSig, address paymentToken, address targetToken, uint256 tokenId, uint256 price) external;
+    function removePrice (bytes4 methodSig, address paymentToken, address targetToken, uint256 tokenId, uint256 price) external;
+
+
+    function getIdBooks(bytes4 methodSig, address paymentToken, address targetToken) external view returns (uint256[] memory ids);
+    function getPriceBooks(bytes4 methodSig, address paymentToken, address targetToken, uint256 tokenId) external view returns (uint256[] memory prices);
+    function getOrder(bytes4 methodSig, address paymentToken, address targetToken, uint256 tokenId, uint256 price, uint256 orderIndex) external view returns (address maker, uint256 amount, uint256 expireTime);
+    function getOrderIndex(bytes4 methodSig, address paymentToken, address targetToken, uint256 tokenId, uint256 price) external view returns (uint256 turnIndex, uint256 endIndex);
+}
+
+interface IMasterExchange is IExchangeStruct {
+    // user function
+    function sell(UnAssignOrders memory _order) external;
+    // function sell(UnAssignOrders[] memory _order) external;
+    function buy(UnAssignOrders memory _order) external;
+    // function buy(UnAssignOrders[] memory _order) external;
+    function assignMatch(AssignOrders memory _order) external;
+    function cancel(AssignOrders memory _order) external;
+    function cancel(AssignOrders[] memory _order) external;
+    function setFeeBooks (address targetToken, address _projectWallet, uint16 _projectFee) external;
+
+    // owner function (onlyOwner)
+    function resister(address exchange721, address exchangeStore721, address exchange1155, address exchangeStore1155) external;
+    function deResister(address exchange) external;
+    function migration(address newMaster) external;
+    function pause() external;
+    function unpause() external;
+    function adminCancel(AssignOrders memory _order) external;
+    function adminSetFeeBooks (address targetToken, address account, uint16 rate) external;
+    function setBaseFee (address account, uint16 rate) external;
+    function setProjectFeeLimit(uint16 rate) external;
+    function setViewer(address _ExchangeViewer) external;
+    function setViewer(address _ExchangeViewer, address exchange) external;
+
+    // MasterExchange Event
+    event addSellOrderEvent(address paymentToken, address indexed targetToken, uint256 indexed tokenId, address indexed maker, uint256 price, uint256 amount, uint256 orderIndex, uint256 expireTime);
+    event addBuyOrderEvent(address paymentToken, address indexed targetToken, uint256 indexed tokenId, address indexed maker, uint256 price, uint256 amount, uint256 orderIndex, uint256 expireTime);
+    event sellMatchOrderEvent(address paymentToken, address indexed targetToken, uint256 indexed tokenId, address indexed maker, uint256 price, uint256 amount, uint256 orderIndex, address taker);
+    event buyMatchOrderEvent(address paymentToken, address indexed targetToken, uint256 indexed tokenId, address indexed maker, uint256 price, uint256 amount, uint256 orderIndex, address taker);
+    event cancelSellOrderEvent(address paymentToken, address indexed targetToken, uint256 indexed tokenId, address indexed maker, uint256 price, uint256 amount, uint256 orderIndex);
+    event cancelBuyOrderEvent(address paymentToken, address indexed targetToken, uint256 indexed tokenId, address indexed maker, uint256 price, uint256 amount, uint256 orderIndex);
+}
+
+abstract contract ExchangeMethodValidator {
+    bytes4 constant sellSig = IMasterExchange(address(0)).sell.selector;
+    bytes4 constant buySig = IMasterExchange(address(0)).buy.selector;
+
+    modifier methodSigValidator(bytes4 sig) {
+        require(sig == sellSig || sig == buySig, "invalid methodSig");
+        _;
+    }
+
+    function getReverseSignature(bytes4 methodSig) methodSigValidator(methodSig) internal pure returns (bytes4) {
+        if (methodSig == sellSig) return buySig;
+        else return sellSig;
+    }
+}
+
+
+interface IMiniExchange is IExchangeStruct {
+    // master function
+    function findMatch(AssignOrders memory order, IMiniExchangeStore Store) external view returns (MiniOrder memory matchableOrders); // 미지정 오더 (오더 탐색 & 오더 생성)
+    function cancel(AssignOrders memory order, IMiniExchangeStore Store) external view returns (bool);
+    function setViewer(address _ExchangeViewer) external;
+
+    // view function
+    function validateTargetToken(address targetToken, address account, uint tokenId, uint amount) external view returns (bool);
+}
+
+abstract contract ViewerRole {
+    address public Viewer;
+
+    function _setViewer(address _ExchangeViewer) internal {
+        Viewer = address(_ExchangeViewer);
+    }
+}
+
+interface IMiniRole {
+    function transferMastership(address newMaster) external;
+    function renounceMastership() external;
+
+    function master() external view returns(address);
+    function getName() external view returns (string memory);
+
+    function validateERC20(address tokenAddress, address account, uint value) external view returns (bool);
+}
+
+
+abstract contract MiniRole is ExchangeMethodValidator {
+    using SafeERC20Upgradeable for IERC20Upgradeable;
+
+    string public constant name = "KlayMint Mini Exchange Contract";
+
+    address private __MasterExchange;
+
+    event MastershipTransferred(
+        address indexed previousMaster,
+        address indexed newMaster
+    );
+
+    modifier onlyMaster() {
+        _checkMaster();
+        _;
+    }
+
+
+    /*
+        상속받는 contract 의 초기(initialize or constructor) 에서 실행
+    */
+    function __MiniRole_init(address _master) internal {
+        require(_master != address(0), "init master address can not null address");
+
+        __MasterExchange = _master;
+    }
+
+    function _checkMaster() internal view virtual {
+        require(msg.sender == master(), "MiniRole: caller is not the Master Contract");
+    }
+
+
+    function getName() public pure returns (string memory) {
+        return name;
+    }
+
+    function master() public view returns(address) {
+        return __MasterExchange;
+    }
+
+    function transferMastership(address newMaster) public onlyMaster {
+        emit MastershipTransferred(__MasterExchange, newMaster);
+        __MasterExchange = newMaster;
+    }
+
+    function renounceMastership() public onlyMaster {
+        emit MastershipTransferred(__MasterExchange, address(0));
+        __MasterExchange = address(0);
+    }
+
+
+
+        /*@@@ call master function @@@*/
+    function validateERC20(address tokenAddress, address account, uint value) public view returns (bool) {
+        if (
+            IERC20Upgradeable(tokenAddress).balanceOf(account) >= value &&
+            IERC20Upgradeable(tokenAddress).allowance(account, master()) >= value
+        ) return true;
+        else return false;
+    }
+}
+
+abstract contract MasterRole is IExchangeStruct, ExchangeMethodValidator {
+    using SafeERC20Upgradeable for IERC20Upgradeable;
+
+    string public constant name = "KlayMint Master Exchange Contract";
+
+    address ex721;
+    address ex1155;
+
+    bytes4 constant ERC721InterfaceId = 0x80ac58cd; // same IKIP17 interfaceId
+    //    bytes4 constant ERC1155InterfaceId = 0xd9b67a26;
+
+    // mapping(exchangeAddress => storeAddress)
+    mapping(address => address) emitter;
+
+    modifier onlyEmitter() {
+        _checkEmitter();
+        _;
+    }
+
+
+
+    function _setEmitter(address exchange, address store) internal {
+        emitter[exchange] = store;
+    }
+    function _checkEmitter() internal view virtual {
+        require(emitter[msg.sender] != address(0), "MasterRole: caller is not the MiniExchange Contract");
+    }
+    function _checkMiniExchange(address miniExchange) internal view {
+        require(miniExchange != address(0), "exchange address can not null address");
+        require(
+            keccak256(abi.encodePacked(("KlayMint Mini Exchange Contract"))) == keccak256(abi.encodePacked((
+                IMiniRole(miniExchange).getName()
+            ))), "not a miniExchange"
+        );
+    }
+    function _checkMasterExchange(address masterExchange) internal view {
+        require(masterExchange != address(0), "exchange address can not null address");
+        require(
+            keccak256(abi.encodePacked((name))) == keccak256(abi.encodePacked((
+                IMiniRole(masterExchange).getName()
+            ))), "not a masterExchange"
+        );
+    }
+
+
+
+    function getName() public pure returns (string memory) {
+        return name;
+    }
+
+    function getMini() public view returns(address mini721, address miniStore721, address mini1155, address miniStore1155) {
+        return (ex721, emitter[ex721], ex1155, emitter[ex1155]);
+    }
+
+
+    /*
+        masterExchange 가 관리할 child exchange 를 등록하는 함수,
+        최초 1회, 또는 child exchange 의 address 가 변경된 경우 사용
+        실제 parameter 에는 address 가 들어감
+    */
+    function _resister(address exchange721, address exchangeStore721, address exchange1155, address exchangeStore1155) internal {
+        _checkMiniExchange(exchange721);
+        _checkMiniExchange(exchangeStore721);
+        _checkMiniExchange(exchange1155);
+        _checkMiniExchange(exchangeStore1155);
+
+        ex721 = exchange721;
+        ex1155 = exchange1155;
+
+        _setEmitter(exchange721, exchangeStore721);
+        _setEmitter(exchange1155, exchangeStore1155);
+    }
+
+    /*
+        masterExchange 가 관리할 child exchange 를 해제하는 함수,
+        해당 함수를 사용하면 child exchange 의 master 가 null address 로 변경(폐기)
+        parameter address 는 address(ex721) 또는 address(ex1155) 가 들어가야함
+    */
+    function _deResister(address exchange) internal {
+        _checkMiniExchange(exchange);
+
+        IMiniRole(exchange).renounceMastership();
+
+        if (exchange == address(ex721)) delete ex721;
+        else if (exchange == address(ex1155)) delete ex1155;
+        else revert("invalid exchange address");
+
+        _setEmitter(exchange, address(0));
+    }
+
+    /*
+        masterExchange 의 address 가 변경됨에 따라,
+        child 의 master 를 변경해야할 때 사용하는 함수
+        해당 함수는 newMaster 라는 새로운 masterExchange 를 배포한 후,
+        address 를 parameter 로 전달하여 새로운 master 가 되게 한다.
+
+        #! 주의 !#
+        해당 함수 실행 후, new masterExchange 에서 resister 는 별도로 진행해줘야한다.
+    */
+    function _migration(address newMaster) internal {
+        _checkMasterExchange(newMaster);
+
+        IMiniRole(ex721).transferMastership(newMaster);
+        IMiniRole(emitter[ex721]).transferMastership(newMaster);
+        IMiniRole(ex1155).transferMastership(newMaster);
+        IMiniRole(emitter[ex1155]).transferMastership(newMaster);
+    }
+
+    function safePaymentTransferFrom(address paymentToken, address from, address to, uint value) internal {
+        IERC20Upgradeable(paymentToken).transferFrom(address(from), address(to), value);
+    }
+
+    function safeTargetTokenTransferFrom(address targetToken, address from, address to, uint tokenId, uint amount) internal {
+        if (_isERC721(targetToken)) IERC721Upgradeable(targetToken).safeTransferFrom(address(from), address(to), tokenId);
+        else IERC1155Upgradeable(targetToken).safeTransferFrom(address(from), address(to), tokenId, amount, bytes(""));
+    }
+
+
+
+        /*@@@@@@@ internal view or pure function @@@@@@@*/
+    function _isERC721(address targetToken) internal view returns(bool isERC721) {
+        return IERC165Upgradeable(targetToken).supportsInterface(ERC721InterfaceId);
+    }
+
+    function getMini(address targetToken) internal view returns(address exchange, address store) {
+        if (_isERC721(targetToken)) return (ex721, emitter[ex721]);
+        else return (ex1155, emitter[ex1155]);
+    }
+
+    function makerOrder(bytes4 methodSig, address paymentToken, address targetToken, address account, uint tokenId, uint price, uint amount, uint expirationDate, uint turnIndex, uint endIndex) internal view returns (Params memory order) {
+        uint expireTime = expirationDate == 0 ? 2 ** 256 - 1 : (block.timestamp + (expirationDate * 86400));
+
+        Params memory _order = Params(methodSig, paymentToken, targetToken, account, tokenId, price, amount, turnIndex, endIndex, expireTime);
+
+        require(amount != 0, "not allowed amount 0");
+        require(price != 0, "not allowed buyPrice 0");
+        require(targetToken != address(0), "not allowed kip37Address 0x");
+        require(paymentToken != address(0), "not allowed ERC20Address 0x");
+
+        return _order;
+    }
+}
+
+abstract contract MasterAdmin is MasterRole {
+    address baseKlaymintWallet;
+    uint16 baseKlaymintFee;
+
+    uint16 public projectFeeLimit;
+
+    struct Fee { // fee 는 판매자 부담
+        address projectWallet;
+        uint16 projectFee;
+    }
+
+    // mapping(targetToken => fee))
+    mapping(address => Fee) feeBooks;
+
+
+
+        /*@@@@@@@ external view function @@@@@@@*/
+    function getFeeBook(address targetToken) external view returns (address klaymint, uint16 klaymintRate, address project, uint16 projectRate) {
+        Fee memory _fee = feeBooks[targetToken];
+
+        return (baseKlaymintWallet, baseKlaymintFee, _fee.projectWallet, _fee.projectFee);
+    }
+
+
+
+        /*@@@@@@@ internal admin function @@@@@@@*/
+    function _setFeeBook(address targetToken, address account, uint16 rate) internal {
+        require(targetToken != address(0), "account can not null address");
+        require(account != address(0), "account can not null address");
+        require(rate <= projectFeeLimit, "rate should be samller than projectFeeLimit");
+
+        feeBooks[targetToken] = Fee(account, rate);
+    }
+
+    function _setBaseFee(address account, uint16 rate) internal {
+        require(rate + projectFeeLimit <= 1000, "projectFeeLimit plus baseKlaymintFee should be smaller than 1000");
+        require(account != address(0), "baseFeeWalletAddress can not NullAddress");
+
+        baseKlaymintWallet = account;
+        baseKlaymintFee = rate;
+    }
+
+    function _setProjectFeeLimit(uint16 rate) internal {
+        require(baseKlaymintFee + rate <= 1000, "projectFeeLimit plus baseKlaymintFee should be smaller than 1000");
+        projectFeeLimit = rate;
+    }
+
+
+
+        /*@@@@@@@ external emitter function @@@@@@@*/
+    function shareFee(address paymentToken, address targetToken, address from, address to, uint256 value) internal {
+        Fee memory _fee = feeBooks[targetToken];
+
+        uint _klaymintValue = value / 1000 * baseKlaymintFee;
+        uint _ProjectValue = value / 1000 * _fee.projectFee;
+        uint _userValue = value - _klaymintValue - _ProjectValue;
+
+        if (to != address(0)) safePaymentTransferFrom(paymentToken, from, to, _userValue);
+
+        safePaymentTransferFrom(paymentToken, from, baseKlaymintWallet, _klaymintValue);
+        if (_fee.projectWallet != address(0) && _fee.projectFee != 0) safePaymentTransferFrom(paymentToken, from, _fee.projectWallet, _ProjectValue);
+    }
+}
+
+
+
+contract MasterExchange is IMasterExchange, MasterAdmin, ViewerRole, Initializable, OwnableUpgradeable, PausableUpgradeable {
+    bool public initialized;
+
+
+    function initialize(address _klaymintWallet, uint16 _klaymintFee, address _ExchangeViewer) public initializer {
+        require(_klaymintFee <= 900, "projectFeeLimit plus baseKlaymintFee should be smaller than 1000");
+        __Ownable_init();
+        __Pausable_init();
+
+        baseKlaymintWallet = _klaymintWallet;
+        baseKlaymintFee = _klaymintFee;
+        projectFeeLimit = 100; // project fee percent limit (100 == 10%)
+
+        _setViewer(_ExchangeViewer);
+
+        initialized = false;
+    }
+
+
+        /*@@@@@@@ MasterExchange user function @@@@@@@*/
+    function sell(UnAssignOrders memory _order) public whenNotPaused {
+        (address exchange, address store) = getMini(_order.targetToken);
+
+        (uint leftOver, uint turnIndex, uint endIndex) = _findMatch(_order, sellSig, IMiniExchange(exchange), IMiniExchangeStore(store));
+
+        if (leftOver != 0) {
+            Params memory newOrder = makerOrder(sellSig, _order.paymentToken, _order.targetToken, msg.sender, _order.tokenId, _order.price, _order.amount, _order.expireDate, turnIndex, endIndex);
+            uint orderIndex = IMiniExchangeStore(store).addOrder(newOrder);
+            emit addSellOrderEvent( _order.paymentToken, _order.targetToken, _order.tokenId, msg.sender, _order.price, _order.amount, orderIndex, newOrder.expireTime);
+
+            _addBooks(_order, sellSig, IMiniExchangeStore(store));
+        }
+
+        if (IExchangeViewer(Viewer).isRemoveBook(getReverseSignature(sellSig), _order.paymentToken, _order.targetToken, _order.tokenId, _order.price)) {
+            _removeBooks(_order, getReverseSignature(sellSig), IMiniExchangeStore(store));
+        }
+    }
+
+    function sell(UnAssignOrders[] memory _orders) external whenNotPaused {
+        for (uint8 i = 0; i < _orders.length; i++) {
+            sell(_orders[i]);
+        }
+    }
+
+    function buy(UnAssignOrders memory _order) public whenNotPaused {
+        (address exchange, address store) = getMini(_order.targetToken);
+
+        (uint leftOver, uint turnIndex, uint endIndex) = _findMatch(_order, buySig, IMiniExchange(exchange), IMiniExchangeStore(store));
+
+        if (leftOver != 0) {
+            Params memory newOrder = makerOrder(buySig, _order.paymentToken, _order.targetToken, msg.sender, _order.tokenId, _order.price, _order.amount, _order.expireDate, turnIndex, endIndex);
+            uint orderIndex = IMiniExchangeStore(store).addOrder(newOrder);
+            emit addBuyOrderEvent( _order.paymentToken, _order.targetToken, _order.tokenId, msg.sender, _order.price, _order.amount, orderIndex, newOrder.expireTime);
+
+            _addBooks(_order, buySig, IMiniExchangeStore(store));
+        }
+
+        if (IExchangeViewer(Viewer).isRemoveBook(getReverseSignature(buySig), _order.paymentToken, _order.targetToken, _order.tokenId, _order.price)) {
+            _removeBooks(_order, getReverseSignature(buySig), IMiniExchangeStore(store));
+        }
+    }
+
+    function buy(UnAssignOrders[] memory _orders) external whenNotPaused {
+        for (uint8 i = 0; i < _orders.length; i++) {
+            buy(_orders[i]);
+        }
+    }
+
+    function cancel(AssignOrders memory _order) public whenNotPaused {
+        require(_order.taker == msg.sender, "invalid taker address");
+
+        (address exchange, address store) = getMini(_order.targetToken);
+
+        bool revocable = IMiniExchange(exchange).cancel(_order, IMiniExchangeStore(store));
+
+        if (revocable) {
+            IMiniExchangeStore(store).removeOrder(_order);
+            if (_order.methodSig == sellSig) emit cancelSellOrderEvent(_order.paymentToken, _order.targetToken, _order.tokenId, msg.sender, _order.price, _order.amount, _order.orderIndex);
+            else emit cancelBuyOrderEvent(_order.paymentToken, _order.targetToken, _order.tokenId, msg.sender, _order.price, _order.amount, _order.orderIndex);
+
+            if (IExchangeViewer(Viewer).isRemoveBook(getReverseSignature(_order.methodSig), _order.paymentToken, _order.targetToken, _order.tokenId, _order.price)) {
+                _removeBooks(UnAssignOrders(_order.paymentToken, _order.targetToken, _order.tokenId, _order.price, _order.amount, 0), _order.methodSig, IMiniExchangeStore(store));
+            }
+        }
+    }
+
+    function cancel(AssignOrders[] memory _orders) external whenNotPaused {
+        for (uint8 i = 0; i < _orders.length; i++) {
+            cancel(_orders[i]);
+        }
+    }
+
+    function assignMatch(AssignOrders memory order) external whenNotPaused {
+        require(order.taker == msg.sender, "invalid taker address");
+
+        (address exchange, address store) = getMini(order.targetToken);
+
+        MiniOrder memory _miniOrder = IMiniExchange(exchange).findMatch(order, IMiniExchangeStore(store));
+
+        require(_miniOrder.amount != 0 && _miniOrder.expireTime != 0 && _miniOrder.maker != address(0), "invalid order, fail OrderMatch");
+
+        if (order.methodSig == sellSig) {
+            safeTargetTokenTransferFrom(order.targetToken, order.taker, _miniOrder.maker, order.tokenId, _miniOrder.amount);
+            shareFee(order.paymentToken, order.targetToken, _miniOrder.maker, order.taker, order.price * _miniOrder.amount);
+            emit sellMatchOrderEvent(order.paymentToken, order.targetToken, order.tokenId, _miniOrder.maker, order.price, _miniOrder.amount, _miniOrder.orderIndex, order.taker);
+        } else {
+            safeTargetTokenTransferFrom(order.targetToken, _miniOrder.maker, order.taker, order.tokenId, _miniOrder.amount);
+            shareFee(order.paymentToken, order.targetToken, order.taker, _miniOrder.maker, order.price * _miniOrder.amount);
+            emit buyMatchOrderEvent(order.paymentToken, order.targetToken, order.tokenId, _miniOrder.maker, order.price, _miniOrder.amount, _miniOrder.orderIndex, order.taker);
+        }
+
+        if (order.amount <= _miniOrder.amount) _miniOrder.amount -= order.amount;
+        else _miniOrder.amount = 0;
+
+        IMiniExchangeStore(store).setOrderBook(getReverseSignature(order.methodSig), order.paymentToken, order.targetToken, order.tokenId, order.price, _miniOrder.amount, _miniOrder.orderIndex);
+
+        if (IExchangeViewer(Viewer).isRemoveBook(getReverseSignature(order.methodSig), order.paymentToken, order.targetToken, order.tokenId, order.price)) {
+            _removeBooks(UnAssignOrders(order.paymentToken, order.targetToken, order.tokenId, order.price, order.amount, 0), getReverseSignature(order.methodSig), IMiniExchangeStore(store));
+        }
+    }
+
+    function marketMatch(AssignOrders memory order) external whenNotPaused {
+        require(order.taker == msg.sender, "invalid taker address");
+        require(order.methodSig == sellSig || order.methodSig == buySig, "invalid methodSig");
+        (address exchange, address store) = getMini(order.targetToken);
+        require(exchange == address(ex1155), "ERC721 Contract address can Not available.");
+
+        UnAssignOrders memory _unAssignOrder = UnAssignOrders(order.paymentToken, order.targetToken, order.tokenId, order.price, order.amount, 0);
+
+        _findMatch(_unAssignOrder, order.methodSig, IMiniExchange(exchange), IMiniExchangeStore(store));
+
+        if (IExchangeViewer(Viewer).isRemoveBook(getReverseSignature(order.methodSig), order.paymentToken, order.targetToken, order.tokenId, order.price)) {
+            _removeBooks(_unAssignOrder, getReverseSignature(order.methodSig), IMiniExchangeStore(store));
+        }
+    }
+
+    function setFeeBooks (address targetToken, address account, uint16 rate) external whenNotPaused {
+        /* contract 가 ownable을 상속했고 msg sender 가 owner 일 경우 setFee 가능 */
+        require(IOwnable(targetToken).owner() == msg.sender, "Ownable: caller is not the owner");
+        _setFeeBook(targetToken, account, rate);
+    }
+
+
+        /*@@@@@@@ internal function @@@@@@@*/
+    function _findMatch(UnAssignOrders memory _order, bytes4 _methodSig, IMiniExchange Exchange, IMiniExchangeStore Store) internal returns (uint _leftOver, uint _turnIndex, uint _endIndex) {
+        if (_methodSig == sellSig) require(Exchange.validateTargetToken(_order.targetToken, msg.sender, _order.tokenId, _order.amount), "caller is not owner nor approved");
+        else require(IMiniRole(address(Exchange)).validateERC20(_order.paymentToken, msg.sender, _order.price), "caller is not enough nor approved");
+
+        (uint256 turnIndex, uint256 endIndex) = Store.getOrderIndex(getReverseSignature(_methodSig), _order.paymentToken, _order.targetToken, _order.tokenId, _order.price);
+
+        while (turnIndex < endIndex) {
+            AssignOrders memory order = AssignOrders(_methodSig, _order.paymentToken, _order.targetToken, msg.sender, _order.tokenId, _order.price, _order.amount, turnIndex);
+            MiniOrder memory _miniOrder = Exchange.findMatch(order, Store);
+
+            if (_miniOrder.amount == 0 || _miniOrder.expireTime == 0 || _miniOrder.maker == address(0)) {
+                turnIndex++;
+                continue;
+            }
+
+            uint matchAmount;
+
+            // 두 조건 모두 overflow or underflow 방지 조건
+            if (_miniOrder.amount <= _order.amount) {
+                matchAmount = _miniOrder.amount;
+                _miniOrder.amount = 0;
+            } else {
+                matchAmount = _order.amount;
+                _miniOrder.amount -= _order.amount;
+            }
+            _order.amount -= matchAmount;
+
+            if (_methodSig == sellSig) {
+                safeTargetTokenTransferFrom(order.targetToken, order.taker, _miniOrder.maker, order.tokenId, matchAmount);
+                shareFee(order.paymentToken, order.targetToken, _miniOrder.maker, order.taker, order.price * matchAmount);
+                emit sellMatchOrderEvent(order.paymentToken, order.targetToken, order.tokenId, _miniOrder.maker, order.price, matchAmount, turnIndex, order.taker);
+            } else {
+                safeTargetTokenTransferFrom(order.targetToken, _miniOrder.maker, order.taker, order.tokenId, matchAmount);
+                shareFee(order.paymentToken, order.targetToken, order.taker, _miniOrder.maker, order.price * matchAmount);
+                emit buyMatchOrderEvent(order.paymentToken, order.targetToken, order.tokenId, _miniOrder.maker, order.price, matchAmount, turnIndex, order.taker);
+            }
+
+            Store.setOrderBook(getReverseSignature(_methodSig), order.paymentToken, order.targetToken, order.tokenId, order.price, _miniOrder.amount, turnIndex);
+
+            if (_order.amount == 0){
+                if (_miniOrder.amount == 0) turnIndex++;
+                break;
+            }
+
+            turnIndex++;
+        }
+
+        Store.setTurnIndex(getReverseSignature(_methodSig), _order.paymentToken, _order.targetToken, _order.tokenId, _order.price, turnIndex);
+
+        return (_order.amount, turnIndex, endIndex);
+    }
+
+    function _removeBooks(UnAssignOrders memory order, bytes4 orderBookSig, IMiniExchangeStore Store) internal {
+        Store.removePrice(orderBookSig, order.paymentToken, order.targetToken, order.tokenId, order.price);
+        if (Store.getPriceBooks(orderBookSig, order.paymentToken, order.targetToken, order.tokenId).length == 0) {
+            Store.removeTokenId(orderBookSig, order.paymentToken, order.targetToken, order.tokenId);
+        }
+    }
+
+    function _addBooks(UnAssignOrders memory order, bytes4 orderBookSig, IMiniExchangeStore Store) internal {
+        Store.addPrice(orderBookSig, order.paymentToken, order.targetToken, order.tokenId, order.price);
+        Store.addTokenId(orderBookSig, order.paymentToken, order.targetToken, order.tokenId);
+    }
+
+
+        /*@@@@@@@ owner function @@@@@@@*/
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    function unpause() external onlyOwner {
+        _unpause();
+    }
+
+    function resister(address exchange721, address exchangeStore721, address exchange1155, address exchangeStore1155) external onlyOwner {
+        _resister(exchange721, exchangeStore721, exchange1155, exchangeStore1155);
+    }
+
+    function deResister(address exchange) external onlyOwner {
+        _deResister(exchange);
+    }
+
+    function migration(address newMaster) external onlyOwner {
+        _pause();
+        _migration(newMaster);
+    }
+
+    function adminCancel(AssignOrders memory _order) external onlyOwner {
+        (address exchange, address store) = getMini(_order.targetToken);
+        bool revocable = IMiniExchange(exchange).cancel(_order, IMiniExchangeStore(store));
+        if (revocable) {
+            IMiniExchangeStore(store).removeOrder(_order);
+            if (_order.methodSig == sellSig) emit cancelSellOrderEvent(_order.paymentToken, _order.targetToken, _order.tokenId, msg.sender, _order.price, _order.amount, _order.orderIndex);
+            else emit cancelBuyOrderEvent(_order.paymentToken, _order.targetToken, _order.tokenId, msg.sender, _order.price, _order.amount, _order.orderIndex);
+        }
+    }
+
+    function adminSetFeeBooks (address targetToken, address account, uint16 rate) external onlyOwner {
+        _setFeeBook(targetToken, account, rate);
+    }
+
+    function setBaseFee (address account, uint16 rate) external onlyOwner {
+        _setBaseFee(account, rate);
+    }
+
+    function setProjectFeeLimit(uint16 rate) external onlyOwner {
+        _setProjectFeeLimit(rate);
+    }
+
+    // MasterExchange's Viewer address change function
+    function setViewer(address _ExchangeViewer) external onlyOwner {
+        _setViewer(_ExchangeViewer);
+    }
+
+    // MiniExchange's Viewer address change function
+    function setViewer(address _ExchangeViewer, address exchange) external onlyOwner {
+        IMiniExchange(exchange).setViewer(_ExchangeViewer);
+    }
+}
+
+
+interface IMiniExchangeStruct721 {
+    struct Order {
+        address maker;
+        uint256 price;
+        uint256 expireTime;
+    }
+    struct BuyOrder {
+        address maker;
+        uint256 expireTime;
+    }
+
+    /**
+        Indexer rule ( ** 중요함 **) -> 핵심 role
+            1. turnIndex 는 matchOrder 를 통해서만 증가된다.
+            2. endIndex 는 addOrder 를 통해서만 증가된다. (endIndex 를 order 로 만들고, 증가 시키는 방식, 즉 endIndex 는 nextOrderIndex)
+            3. (turnIndex <= orderIndex < endIndex) , orderIndex 의 오더만 체결된다.
+            4. 판매 또는 구매 가능한 수량을 출력해주는 함수 또한 해당 indexer의 turnIndex ~ endIndex 사이의 amount 를 출력한다.
+    */
+    struct Indexer { // 구매 order 의 인덱서,  turnIndex 와 endIndex 간격에는 order 가 존재하고, 해당 index 값이 아래 order mapping의 key 값이 된다.
+        uint256 turnIndex; // 해당 가격으로 가장 먼저 체결되는 인덱스
+        uint256 endIndex; // 해당 가격으로 addOrder 되는 nextIndex ( endIndex-1 값이 마지막 오더)
+        mapping(uint => BuyOrder) order; // 위 인덱스를 key 값으로 가지는 주문서
+    }
+}
+
+
+contract MiniExchange721 is IMiniExchange, IMiniExchangeStruct721, ViewerRole, MiniRole, Initializable {
+    using EnumerableSet for EnumerableSet.UintSet;
+
+    bool public initialized;
+
+    function initialize(address _master, address _ExchangeViewer) public initializer {
+        __MiniRole_init(_master);
+
+        _setViewer(_ExchangeViewer);
+
+        initialized = false;
+    }
+
+
+
+        /*@@@ master  function @@@*/
+    function findMatch(AssignOrders memory order, IMiniExchangeStore Store) external view onlyMaster returns (MiniOrder memory matchableOrders) {
+        (address maker, uint256 price, uint256 expireTime) = Store.getOrder(getReverseSignature(order.methodSig), order.paymentToken, order.targetToken, order.tokenId, order.price, order.orderIndex);
+
+        bool result = validator(order, Order(maker, price, expireTime));
+
+        if (result) return MiniOrder(maker, 1, expireTime, order.orderIndex);
+        else return MiniOrder(address(0), 0, 0, 0);
+    }
+
+    function cancel(AssignOrders memory order, IMiniExchangeStore Store) external view onlyMaster returns (bool) {
+        (address maker, , uint256 expireTime) = Store.getOrder(order.methodSig, order.paymentToken, order.targetToken, order.tokenId, order.price, order.orderIndex);
+
+        if (maker == order.taker && expireTime >= block.timestamp) return true;
+        else return false;
+    }
+
+    function setViewer(address _ExchangeViewer) external onlyMaster {
+        _setViewer(_ExchangeViewer);
+    }
+
+
+
+        /*@@@ view function @@@*/
+    function validator(AssignOrders memory order, Order memory m_order) public view returns (bool) {
+        if (m_order.expireTime < block.timestamp) return false;
+        else if (order.methodSig == sellSig) {
+            if (!validateTargetToken(order.targetToken, order.taker, order.tokenId, 0)) return false;
+            else if (!validateERC20(order.paymentToken, m_order.maker, order.price)) return false;
+        } else {
+            if (m_order.price != order.price) return false; // m_order.price > order.price 라는 조건문을 붙이면, 제시한 금액보다 작은 금액의 판매 오더도 포함
+            else if (!validateERC20(order.paymentToken, order.taker, order.price)) return false;
+            else if (!validateTargetToken(order.targetToken, m_order.maker, order.tokenId, 0)) return false;
+        }
+
+        return true;
+    }
+
+    function validateTargetToken(address targetToken, address account, uint tokenId, uint) public view returns (bool) {
+        if (
+            IERC721Upgradeable(targetToken).ownerOf(tokenId) == account &&
+            IERC721Upgradeable(targetToken).isApprovedForAll(account, master())
+        ) return true;
+        else return false;
+    }
+}
+
+
+
+interface IMiniExchangeStruct1155 {
+    struct Order {
+        address maker;
+        uint256 amount;
+        uint256 expireTime;
+    }
+    /**
+        Indexer rule ( ** 중요함 **) -> 핵심 role
+            1. turnIndex 는 matchOrder 를 통해서만 증가된다.
+            2. endIndex 는 addOrder 를 통해서만 증가된다. (endIndex 를 order 로 만들고, 증가 시키는 방식, 즉 endIndex 는 nextOrderIndex)
+            3. (turnIndex <= orderIndex < endIndex) , orderIndex 의 오더만 체결된다.
+            4. 판매 또는 구매 가능한 수량을 출력해주는 함수 또한 해당 indexer의 turnIndex ~ endIndex 사이의 amount 를 출력한다.
+    */
+    struct Indexer { // 구매, 판매 order 의 인덱서,  turnIndex 와 endIndex 간격에는 order 가 존재하고, 해당 index 값이 아래 order mapping의 key 값이 된다.
+        uint256 turnIndex; // 해당 가격으로 가장 먼저 체결되는 인덱스
+        uint256 endIndex; // 해당 가격으로 addOrder 되는 nextIndex ( endIndex-1 값이 마지막 오더)
+        mapping(uint => Order) order;  // 위 인덱스를 key 값으로 가지는 주문서
+    }
+}
+
+contract MiniExchange1155 is IMiniExchange, IMiniExchangeStruct1155, ViewerRole, MiniRole, Initializable {
+    using EnumerableSet for EnumerableSet.UintSet;
+
+    bool public initialized;
+
+    function initialize(address _master, address _ExchangeViewer) public initializer {
+        __MiniRole_init(_master);
+
+        _setViewer(_ExchangeViewer);
+
+        initialized = false;
+    }
+
+
+        /*@@@ master function @@@*/
+    function findMatch(AssignOrders memory order, IMiniExchangeStore Store) external view onlyMaster returns (MiniOrder memory matchableOrders)  {
+        (address maker, uint256 amount, uint256 expireTime) = Store.getOrder(getReverseSignature(order.methodSig), order.paymentToken, order.targetToken, order.tokenId, order.price, order.orderIndex);
+
+        bool result = validator(order, Order(maker, amount, expireTime));
+
+        if (result) return MiniOrder(maker, amount, expireTime, order.orderIndex);
+        else return MiniOrder(address(0), 0 , 0 , 0);
+    }
+
+    function cancel(AssignOrders memory order, IMiniExchangeStore Store) external view onlyMaster returns(bool) {
+        (address maker, uint256 amount, uint256 expireTime) = Store.getOrder(order.methodSig, order.paymentToken, order.targetToken, order.tokenId, order.price, order.orderIndex);
+
+        if (maker == order.taker && expireTime >= block.timestamp && amount != 0) return true;
+        else return false;
+    }
+
+    function setViewer(address _ExchangeViewer) external onlyMaster {
+        _setViewer(_ExchangeViewer);
+    }
+
+
+
+        /*@@@ view function @@@*/
+    function validator(AssignOrders memory order, Order memory m_order) public view returns (bool) {
+        if (m_order.expireTime < block.timestamp) return false;
+        else if (order.methodSig == sellSig) {
+            if (!validateTargetToken(order.targetToken, order.taker, order.tokenId, order.amount)) return false;
+            else if (!validateERC20(order.paymentToken, m_order.maker, order.price * m_order.amount)) return false;
+        } else {
+            if (!validateERC20(order.paymentToken, order.taker, order.price * order.amount)) return false;
+            else if (!validateTargetToken(order.targetToken, m_order.maker, order.tokenId, m_order.amount)) return false;
+        }
+
+        return true;
+    }
+
+    function validateTargetToken(address targetToken, address account, uint tokenId, uint amount) public view returns (bool) {
+        if (
+            IERC1155Upgradeable(targetToken).balanceOf(account, tokenId) >= amount &&
+            IERC1155Upgradeable(targetToken).isApprovedForAll(account, master())
+        ) return true;
+        else return false;
+    }
+}
+
+
+interface IExchangeViewer is IExchangeStruct {
+    // owner function
+    function resister(address exchange721, address exchangeStore721, address exchange1155, address exchangeStore1155) external;
+
+    // ex1155 view function
+    function getOrderBookByTokenId (bytes4 methodSig, address paymentToken, address targetToken, uint256 tokenId, address account) external view returns (MasterOrderBook memory orders);
+    function getOrderBookByTokenId (bytes4 methodSig, address paymentToken, address targetToken, uint256[] memory tokenIds, address account) external view returns (MasterOrderBook[] memory orderBook);
+    function getAmountByPrice(bytes4 methodSig, address paymentToken, address targetToken, uint256 tokenId, uint price, address account) external view returns (MasterOrders memory order);
+
+    // ex721 view function
+    function getOrderBookByTokenId (address paymentToken, address targetToken, uint256 tokenId, address account) external view returns (MasterOrderBook memory order);
+    function getOrderBookByTokenId (address paymentToken, address targetToken, uint256[] memory tokenIds, address account) external view returns (MasterOrderBook[] memory orderBook);
+    function getSellOrderBooks (address paymentToken, address targetToken, uint tokenId, address account) external view returns (MasterOrderBook memory sellOrder);
+    function validateBuyOrderCounts (address paymentToken, address targetToken, uint tokenId, uint price, address account) external view returns (uint256 cnt);
+
+    // master view function (실제 쓰이는 external function)
+    function getOrderBooks (address paymentToken, address targetToken, address account) external view returns (MasterOrderBook[] memory sellOrderBook, MasterOrderBook[] memory buyOrderBook);
+    function getOrderBooks(address paymentToken, address targetToken, uint tokenId, address account) external view returns (MasterOrderBook memory sellOrderBook, MasterOrderBook memory buyOrderBook);
+    function isRemoveBook(bytes4 methodSig, address paymentToken, address targetToken, uint256 tokenId, uint price) external view returns (bool);
+}
+
+contract ExchangeViewer is IExchangeViewer, MasterRole, Initializable, OwnableUpgradeable {
+    bool public initialized;
+
+    function initialize() public initializer {
+        __Ownable_init();
+
+        initialized = false;
+    }
+
+    function resister(address exchange721, address exchangeStore721, address exchange1155, address exchangeStore1155) external onlyOwner {
+        _resister(exchange721, exchangeStore721, exchange1155, exchangeStore1155);
+    }
+
+
+
+    /**
+        only erc1155 view function
+    */
+    function getOrderBookByTokenId (bytes4 methodSig, address paymentToken, address targetToken, uint256 tokenId, address account) public view returns (MasterOrderBook memory orders) {
+        (, address store) = getMini(targetToken);
+        uint256[] memory __orderPrice = IMiniExchangeStore(store).getPriceBooks(methodSig, paymentToken, targetToken, tokenId);
+
+        MasterOrders[] memory __Orders = new MasterOrders[](__orderPrice.length);
+
+        for (uint l = 0; l < __orderPrice.length; l++) {
+            __Orders[l] = this.getAmountByPrice(methodSig, paymentToken, targetToken, tokenId, __orderPrice[l], account);
+        }
+
+        return MasterOrderBook(tokenId, __Orders);
+    }
+
+    function getOrderBookByTokenId (bytes4 methodSig, address paymentToken, address targetToken, uint256[] memory tokenIds, address account) public view returns (MasterOrderBook[] memory orderBook) {
+        MasterOrderBook[] memory __OrderBook = new MasterOrderBook[](tokenIds.length);
+
+        for (uint i = 0; i < tokenIds.length; i++) {
+            __OrderBook[i] = this.getOrderBookByTokenId(methodSig, paymentToken, targetToken, tokenIds[i], account);
+        }
+
+        return __OrderBook;
+    }
+
+    function _getOrder(bytes4 methodSig, address paymentToken, address targetToken, uint256 tokenId, uint price, address account, uint256 orderIndex) internal view returns (MiniOrder memory order) {
+        (, address store) = getMini(targetToken);
+        (address maker, uint256 _amount, uint256 expireTime) = IMiniExchangeStore(store).getOrder(methodSig, paymentToken, targetToken, tokenId, price, orderIndex);
+
+        if (expireTime < block.timestamp || _amount == 0) return MiniOrder(address(0), 0, 0, 0);
+
+        if (account == address(0)) { // account 가 null 일 때, 유효한 주문 + 유효할 가능성이 있는 amount 모두 리턴
+            return MiniOrder(maker, _amount, expireTime, orderIndex);
+        } else if (account == IMiniRole(ex1155).master()) { // account 가 master() 일 때, 유효한 주문에 대해서만 amount 를 더해서 리턴
+            bool validate = methodSig == sellSig
+            ? IMiniExchange(ex1155).validateTargetToken(targetToken, maker, tokenId, _amount)
+            : IMiniRole(ex1155).validateERC20(paymentToken, maker, price * _amount);
+            if (validate) {
+                return MiniOrder(maker, _amount, expireTime, orderIndex);
+            } else return MiniOrder(address(0), 0, 0, 0);
+        } else if (account == maker) { // account 의 유효한 주문 + 유효할 가능성이 있는 amount 모두 리턴
+            return MiniOrder(maker, _amount, expireTime, orderIndex);
+        } else return MiniOrder(address(0), 0, 0, 0);
+    }
+
+    function getAmountByPrice(bytes4 methodSig, address paymentToken, address targetToken, uint256 tokenId, uint price, address account) public view returns (MasterOrders memory order) {
+        if (methodSig != sellSig &&  methodSig != buySig) revert("invalid method sig");
+
+        (, address store) = getMini(targetToken);
+
+        uint256 sumAmount;
+
+        (uint turnIndex, uint endIndex) = IMiniExchangeStore(store).getOrderIndex(methodSig, paymentToken, targetToken, tokenId, price);
+
+        MiniOrder[] memory __miniOrders = new MiniOrder[](endIndex - turnIndex);
+
+        for (uint256 index = 0; index < __miniOrders.length; index++) {
+            MiniOrder memory __miniOrder = _getOrder(methodSig, paymentToken, targetToken, tokenId, price, account, turnIndex);
+            __miniOrders[index] = __miniOrder;
+            sumAmount += __miniOrder.amount;
+
+            turnIndex++;
+        }
+
+        return MasterOrders(price, sumAmount, __miniOrders);
+    }
+
+    /**
+        only erc721 view function,
+        getOrderBookByTokenId   -> only buySig view function
+        getSellOrderBooks       -> only sellSig view function
+        validateBuyOrderCounts  -> only buy Order count view function
+    */
+    function _getBuyOrder (address paymentToken, address targetToken, uint256 tokenId, address account, uint256 price, uint256 orderIndex) internal view returns (MiniOrder memory buyOrder) {
+        (, address store) = getMini(targetToken);
+
+        (address maker, , uint256 expireTime) = IMiniExchangeStore(store).getOrder(buySig, paymentToken, targetToken, tokenId, price, orderIndex);
+
+        if (expireTime >= block.timestamp) {
+            if (account == address(0)) {
+               return MiniOrder(maker, 1, expireTime, orderIndex);
+            } else if (account == IMiniRole(ex721).master()) {
+                if (IMiniRole(ex721).validateERC20(paymentToken, maker, price)) {
+                    return MiniOrder(maker, 1, expireTime, orderIndex);
+                } else return MiniOrder(address(0), 0, 0, 0);
+            } else if (account == maker) {
+                return MiniOrder(maker, 1, expireTime, orderIndex);
+            } else return MiniOrder(address(0), 0, 0, 0);
+        } else {
+            return MiniOrder(address(0), 0, 0, 0);
+        }
+    }
+
+    function getOrderBookByTokenId (address paymentToken, address targetToken, uint256 tokenId, address account) public view returns (MasterOrderBook memory order) {
+        (, address store) = getMini(targetToken);
+
+        uint256[] memory __orderPrice = IMiniExchangeStore(store).getPriceBooks(buySig, paymentToken, targetToken, tokenId);
+
+        MasterOrders[] memory __MasterOrders = new MasterOrders[](__orderPrice.length);
+
+        for (uint i = 0; i < __orderPrice.length; i++) {
+            (uint turnIndex, uint endIndex) = IMiniExchangeStore(store).getOrderIndex(buySig, paymentToken, targetToken, tokenId, __orderPrice[i]);
+
+            MiniOrder[] memory __MiniOrders = new MiniOrder[](endIndex - turnIndex);
+            uint256 sumAmount;
+
+            for (uint j = 0; j < __MiniOrders.length; j++) {
+                MiniOrder memory __MiniOrder = _getBuyOrder(paymentToken, targetToken, tokenId, account, __orderPrice[i], turnIndex);
+                __MiniOrders[j] = __MiniOrder;
+                if (sumAmount == 0 && __MiniOrder.amount != 0) sumAmount = 1;
+
+                turnIndex++;
+            }
+
+            __MasterOrders[i] = MasterOrders(__orderPrice[i], sumAmount, __MiniOrders);
+        }
+
+        return MasterOrderBook(tokenId, __MasterOrders);
+    }
+
+    function getOrderBookByTokenId (address paymentToken, address targetToken, uint256[] memory tokenIds, address account) public view returns (MasterOrderBook[] memory orderBook) {
+        MasterOrderBook[] memory __OrderBooks  = new MasterOrderBook[](tokenIds.length);
+
+        for (uint i = 0; i < tokenIds.length; i++) {
+            __OrderBooks[i] = this.getOrderBookByTokenId(paymentToken, targetToken, tokenIds[i], account);
+        }
+
+        return __OrderBooks;
+    }
+
+    function getSellOrderBooks (address paymentToken, address targetToken, uint tokenId, address account) public view returns (MasterOrderBook memory sellOrder) {
+        (address exchange, address store) = getMini(targetToken);
+
+        (address maker, uint256 price, uint256 expireTime) = IMiniExchangeStore(store).getOrder(sellSig, paymentToken, targetToken, tokenId, 0, 0);
+
+        if (expireTime < block.timestamp) {
+            return MasterOrderBook(tokenId, new MasterOrders[](0));
+        } else {
+            MasterOrders[] memory __Orders = new MasterOrders[](1);
+            MiniOrder[] memory __order = new MiniOrder[](1);
+
+            if (account == address(0)){
+                __order[0] = MiniOrder(maker, 1, expireTime, 0);
+                __Orders[0] = MasterOrders(price, 1, __order);
+
+                return MasterOrderBook(tokenId, __Orders);
+            } else if (account == IMiniRole(ex721).master()) {
+                if (!IMiniExchange(exchange).validateTargetToken(targetToken, maker, tokenId, 0)) {
+                    __order[0] = MiniOrder(address(0), 0, 0, 0);
+                    __Orders[0] = MasterOrders(price, 0, __order);
+
+                    return MasterOrderBook(tokenId, __Orders);
+                }
+
+                __order[0] = MiniOrder(maker, 1, expireTime, 0);
+                __Orders[0] = MasterOrders(price, 1, __order);
+
+                return MasterOrderBook(tokenId, __Orders);
+            } else if (account == maker) {
+                __order[0] = MiniOrder(maker, 1, expireTime, 0);
+                __Orders[0] = MasterOrders(price, 1, __order);
+
+                return MasterOrderBook(tokenId, __Orders);
+            }
+
+            __order[0] = MiniOrder(address(0), 0, 0, 0);
+            __Orders[0] = MasterOrders(price, 0, __order);
+
+            return MasterOrderBook(tokenId, __Orders);
+        }
+    }
+
+    function validateBuyOrderCounts (address paymentToken, address targetToken, uint tokenId, uint price, address account) public view returns (uint256 cnt) {
+        (, address store) = getMini(targetToken);
+
+        (uint turnIndex, uint endIndex) = IMiniExchangeStore(store).getOrderIndex(buySig, paymentToken, targetToken, tokenId, price);
+
+        uint _cnt;
+
+        for (uint index = turnIndex; index < endIndex; index++){
+            (address maker, , uint256 expireTime) = IMiniExchangeStore(store).getOrder(buySig, paymentToken, targetToken, tokenId, price, index);
+
+            if (expireTime >= block.timestamp) {
+                if (account == address(0)) {
+                    _cnt++;
+                } else if (account == IMiniRole(ex721).master()) {
+                    if (IMiniRole(ex721).validateERC20(paymentToken, maker, price)) _cnt++;
+                } else if (account == maker) {
+                    _cnt++;
+                }
+            }
+        }
+
+        return _cnt;
+    }
+
+    /**
+        erc (1155 + 721) view function
+    */
+    /*@@@@@@@ external or public view function @@@@@@@*/
+    // Rule : groupBy price, sortBy createdAt
+    function getOrderBooks (address paymentToken, address targetToken, address account) public view returns (MasterOrderBook[] memory sellOrderBook, MasterOrderBook[] memory buyOrderBook) {
+        (, address store) = getMini(targetToken);
+
+        if (_isERC721(targetToken)) {
+            uint256[] memory sellIds = IMiniExchangeStore(store).getIdBooks(sellSig, paymentToken, targetToken);
+            MasterOrderBook[] memory _sellOrderBook = new MasterOrderBook[](sellIds.length);
+
+            for (uint i = 0; i < sellIds.length; i++) {
+                _sellOrderBook[i] = this.getSellOrderBooks(paymentToken, targetToken, sellIds[i], account);
+            }
+
+            return (
+                _sellOrderBook,
+                this.getOrderBookByTokenId(
+                    paymentToken,
+                    targetToken,
+                    IMiniExchangeStore(store).getIdBooks(buySig, paymentToken, targetToken),
+                    account
+                )
+            );
+        } else {
+            return (
+                this.getOrderBookByTokenId(
+                    sellSig,
+                    paymentToken,
+                    targetToken,
+                    IMiniExchangeStore(store).getIdBooks(sellSig, paymentToken, targetToken),
+                    account
+                ),
+                this.getOrderBookByTokenId(
+                    buySig,
+                    paymentToken,
+                    targetToken,
+                    IMiniExchangeStore(store).getIdBooks(buySig, paymentToken, targetToken),
+                    account
+                )
+            );
+        }
+    }
+
+    function getOrderBooks(address paymentToken, address targetToken, uint tokenId, address account) external view returns (MasterOrderBook memory sellOrderBook, MasterOrderBook memory buyOrderBook) {
+        if (_isERC721(targetToken)) {
+            return (
+                this.getSellOrderBooks(paymentToken, targetToken, tokenId, account),
+                this.getOrderBookByTokenId(paymentToken, targetToken, tokenId, account)
+            );
+        }
+        else {
+            return (
+                this.getOrderBookByTokenId(sellSig, paymentToken, targetToken, tokenId, account),
+                this.getOrderBookByTokenId(buySig, paymentToken, targetToken, tokenId, account)
+            );
+        }
+    }
+
+    function isRemoveBook(bytes4 methodSig, address paymentToken, address targetToken, uint256 tokenId, uint price) external view returns (bool) {
+        if (_isERC721(targetToken)) {
+            if (methodSig == sellSig) {
+                if (getSellOrderBooks(paymentToken, targetToken, tokenId, address(0)).orders.length == 0) return true;
+                else return false;
+            } else {
+                if (0 == validateBuyOrderCounts(paymentToken, targetToken, tokenId, price, address(0))) return true;
+                else return false;
+            }
+        } else {
+            if (0 == getAmountByPrice(methodSig, paymentToken, targetToken, tokenId, price, address(0)).amount) return true;
+            else return false;
+        }
+    }
+}

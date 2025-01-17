@@ -1,0 +1,469 @@
+{
+  "manifestVersion": "3.2",
+  "admin": {
+    "address": "0xEaF14fA75e8AA29c4c8Ce3A55C075187Ff135056",
+    "txHash": "0xd4d41f3c21e694dffc62623c324b63f31de7ef016b2d56ca088a21a768c8813e"
+  },
+  "proxies": [
+    {
+      "address": "0xD62E744ce430362A075304A74FC352D4790D2ECA",
+      "txHash": "0x7ab550c1a51ac01353a42db80388b0972e2d56b9100175a1df57263b3bf28294",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x51A441e25fDf638f7014A360B8B41a965c329E14",
+      "txHash": "0xae3d185a35930ad2a5d81bd6a32af764a13b301632508d18c69034c56144e3e5",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x00c63A60F5a1d25351252570828E435af546F31C",
+      "txHash": "0x0c4a2f8fa34ccc3799b01f7cf39ae05d7cbe44e79c009f75afd49576149f902b",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x78783D0c2992b2408cD696fFb006B0a6aD9d1e93",
+      "txHash": "0xc799a3bd5103a96919fae46650a31cec57f8ce35325b8a590790b770b065452b",
+      "kind": "transparent"
+    }
+  ],
+  "impls": {
+    "efeb389230bcc32d4713daa5bcb003991d9306c49fb222503f9d4a7ccc632e03": {
+      "address": "0xaD762c31F5647049e7d2185171514E62132ae97A",
+      "txHash": "0xee0cb7f23af8fe2d3074ea81dca35eb88a9329dc47d0b2257b65641c28a53119",
+      "layout": {
+        "solcVersion": "0.8.12",
+        "storage": [
+          {
+            "label": "ex721",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_address",
+            "contract": "MasterRole",
+            "src": "contracts/exchange/Master/Role/MasterRole.sol:21"
+          },
+          {
+            "label": "ex1155",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_address",
+            "contract": "MasterRole",
+            "src": "contracts/exchange/Master/Role/MasterRole.sol:22"
+          },
+          {
+            "label": "emitter",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_mapping(t_address,t_address)",
+            "contract": "MasterRole",
+            "src": "contracts/exchange/Master/Role/MasterRole.sol:28"
+          },
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "3",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:40"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "54",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "55",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "initialized",
+            "offset": 0,
+            "slot": "104",
+            "type": "t_bool",
+            "contract": "ExchangeViewer",
+            "src": "contracts/exchange/Viewer/ExchangeViewer.sol:47"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_address,t_address)": {
+            "label": "mapping(address => address)",
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        },
+        "namespaces": {}
+      }
+    },
+    "ca419f6dfd33bdabd68bcc9d56fbcb55905a94b3eac31768247c2f033c4c1377": {
+      "address": "0x4CB7a692D0F8Db5Fe8C6022A4F5Be24eEcc414BA",
+      "txHash": "0xdab1db6694fef93cdf59dfb9981cb91a57711c12c4083201e996e722df584057",
+      "layout": {
+        "solcVersion": "0.8.12",
+        "storage": [
+          {
+            "label": "ex721",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_address",
+            "contract": "MasterRole",
+            "src": "contracts/exchange/Master/Role/MasterRole.sol:21"
+          },
+          {
+            "label": "ex1155",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_address",
+            "contract": "MasterRole",
+            "src": "contracts/exchange/Master/Role/MasterRole.sol:22"
+          },
+          {
+            "label": "emitter",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_mapping(t_address,t_address)",
+            "contract": "MasterRole",
+            "src": "contracts/exchange/Master/Role/MasterRole.sol:28"
+          },
+          {
+            "label": "baseKlaymintWallet",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_address",
+            "contract": "MasterAdmin",
+            "src": "contracts/exchange/Master/Role/MasterAdmin.sol:7"
+          },
+          {
+            "label": "baseKlaymintFee",
+            "offset": 20,
+            "slot": "3",
+            "type": "t_uint16",
+            "contract": "MasterAdmin",
+            "src": "contracts/exchange/Master/Role/MasterAdmin.sol:8"
+          },
+          {
+            "label": "projectFeeLimit",
+            "offset": 22,
+            "slot": "3",
+            "type": "t_uint16",
+            "contract": "MasterAdmin",
+            "src": "contracts/exchange/Master/Role/MasterAdmin.sol:10"
+          },
+          {
+            "label": "feeBooks",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_mapping(t_address,t_struct(Fee)4108_storage)",
+            "contract": "MasterAdmin",
+            "src": "contracts/exchange/Master/Role/MasterAdmin.sol:18"
+          },
+          {
+            "label": "Viewer",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_address",
+            "contract": "ViewerRole",
+            "src": "contracts/exchange/Viewer/Role/ViewerRole.sol:5"
+          },
+          {
+            "label": "_initialized",
+            "offset": 20,
+            "slot": "5",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 21,
+            "slot": "5",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:40"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "56",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "57",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "_paused",
+            "offset": 0,
+            "slot": "106",
+            "type": "t_bool",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:29"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "107",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:116"
+          },
+          {
+            "label": "initialized",
+            "offset": 0,
+            "slot": "156",
+            "type": "t_bool",
+            "contract": "MasterExchange",
+            "src": "contracts/exchange/Master/MasterExchange.sol:22"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_address,t_address)": {
+            "label": "mapping(address => address)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_struct(Fee)4108_storage)": {
+            "label": "mapping(address => struct MasterAdmin.Fee)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Fee)4108_storage": {
+            "label": "struct MasterAdmin.Fee",
+            "members": [
+              {
+                "label": "projectWallet",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "projectFee",
+                "type": "t_uint16",
+                "offset": 20,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_uint16": {
+            "label": "uint16",
+            "numberOfBytes": "2"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        },
+        "namespaces": {}
+      }
+    },
+    "d164b1a4178c15f77bee27999be40f3d72ea833a5b6030db7c49494509fa7433": {
+      "address": "0xb1AFE49426387f13af04aD40dD7F584aA0c0cDEE",
+      "txHash": "0x4e360e83c73ddb893b0223e9dd2bb1e637e0077c790a0fe5775e6c284c02a0ac",
+      "layout": {
+        "solcVersion": "0.8.12",
+        "storage": [
+          {
+            "label": "Viewer",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_address",
+            "contract": "ViewerRole",
+            "src": "contracts/exchange/Viewer/Role/ViewerRole.sol:5"
+          },
+          {
+            "label": "__MasterExchange",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_address",
+            "contract": "MiniRole",
+            "src": "contracts/exchange/Mini/Role/MiniRole.sol:52"
+          },
+          {
+            "label": "_initialized",
+            "offset": 20,
+            "slot": "1",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 21,
+            "slot": "1",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "initialized",
+            "offset": 22,
+            "slot": "1",
+            "type": "t_bool",
+            "contract": "MiniExchange721",
+            "src": "contracts/exchange/Mini/ERC721/MiniExchange721.sol:25"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        },
+        "namespaces": {}
+      }
+    },
+    "6f524234dd26f01b75a66ce65a7a9f66bdc9480a7693079e7d53fef9c9864a2b": {
+      "address": "0x80F159EAB445284CEF55c87944ff92fc3f4330a3",
+      "txHash": "0xf2834373324368d8df2543d9cc3010072e341c16b0c7e8a9cd1f46cb64c0cb5b",
+      "layout": {
+        "solcVersion": "0.8.12",
+        "storage": [
+          {
+            "label": "Viewer",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_address",
+            "contract": "ViewerRole",
+            "src": "contracts/exchange/Viewer/Role/ViewerRole.sol:5"
+          },
+          {
+            "label": "__MasterExchange",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_address",
+            "contract": "MiniRole",
+            "src": "contracts/exchange/Mini/Role/MiniRole.sol:52"
+          },
+          {
+            "label": "_initialized",
+            "offset": 20,
+            "slot": "1",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 21,
+            "slot": "1",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "initialized",
+            "offset": 22,
+            "slot": "1",
+            "type": "t_bool",
+            "contract": "MiniExchange1155",
+            "src": "contracts/exchange/Mini/ERC1155/MiniExchange1155.sol:35"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        },
+        "namespaces": {}
+      }
+    }
+  }
+}

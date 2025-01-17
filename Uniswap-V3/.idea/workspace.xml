@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="07216dcd-4838-4947-9bc5-c21a4b4736bf" name="Changes" comment="intellij idea, setting">
+      <change afterPath="$PROJECT_DIR$/../X-Fi/scripts/hardhat/testLaunchpad/deploy-full.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Unchain-X/contracts/liquidity-mining/UNXwapV3LmPool.sol" beforeDir="false" afterPath="$PROJECT_DIR$/../Unchain-X/contracts/liquidity-mining/UNXwapV3LmPool.sol" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../X-Fi/.env.example" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../X-Fi/hardhat.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../X-Fi/hardhat.config.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../X-Fi/package-lock.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../X-Fi/scripts/hardhat/testLaunchpad/deploy.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../X-Fi/scripts/hardhat/testLaunchpad/deploy.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../X-Fi/yarn.lock" beforeDir="false" afterPath="$PROJECT_DIR$/../X-Fi/yarn.lock" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 7
+}</component>
+  <component name="ProjectId" id="2bUWJ6VE9IvOvMaou5e4HXlIklI" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "WebServerToolWindowPanel.toolwindow.highlight.mappings": "true",
+    "WebServerToolWindowPanel.toolwindow.highlight.symlinks": "true",
+    "WebServerToolWindowPanel.toolwindow.show.date": "false",
+    "WebServerToolWindowPanel.toolwindow.show.permissions": "false",
+    "WebServerToolWindowPanel.toolwindow.show.size": "false",
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "/Users/gground/IdeaProjects/Solidity/x-core-hardhat/Uniswap-V3/contracts",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.standard": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.standard": "",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs.mocha.mocha_node_package_dir": "",
+    "nodejs_interpreter_path": "node",
+    "nodejs_package_manager_path": "npm",
+    "prettierjs.PrettierConfiguration.Package": "/Users/gground/IdeaProjects/Solidity/x-core-hardhat/Uniswap-V3/node_modules/prettier",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
+    "settings.editor.selected.configurable": "settings.nodejs",
+    "ts.external.directory.path": "/Users/dan/IdeaProjects/solidity/x-core-hardhat/Uniswap-V3/node_modules/typescript/lib",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/contracts" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/scripts" />
+      <recent name="$PROJECT_DIR$/contracts" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="#UNI FORK" type="mocha-javascript-test-runner" temporary="true" nameIsGenerated="true">
+      <node-interpreter>project</node-interpreter>
+      <node-options />
+      <mocha-package />
+      <working-directory>$PROJECT_DIR$</working-directory>
+      <pass-parent-env>true</pass-parent-env>
+      <ui>bdd</ui>
+      <extra-mocha-options>--require ts-node/register</extra-mocha-options>
+      <test-kind>SUITE</test-kind>
+      <test-file>$PROJECT_DIR$/test/index.ts</test-file>
+      <test-names>
+        <name value="#UNI FORK" />
+      </test-names>
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Mocha.#UNI FORK" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-fdfe4dae3a2d-intellij.indexing.shared.core-IU-243.21565.193" />
+        <option value="bundled-js-predefined-d6986cc7102b-e768b9ed790e-JavaScript-IU-243.21565.193" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="07216dcd-4838-4947-9bc5-c21a4b4736bf" name="Changes" comment="" />
+      <created>1706270062685</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1706270062685</updated>
+      <workItem from="1706270064040" duration="1987000" />
+      <workItem from="1706492478736" duration="8024000" />
+      <workItem from="1706581640215" duration="32362000" />
+      <workItem from="1707097410710" duration="58738000" />
+      <workItem from="1707358934031" duration="2523000" />
+      <workItem from="1707361578166" duration="13280000" />
+      <workItem from="1707789705474" duration="67303000" />
+      <workItem from="1708338536882" duration="3595000" />
+      <workItem from="1708481602081" duration="6744000" />
+      <workItem from="1708502227867" duration="131000" />
+      <workItem from="1708502373499" duration="2439000" />
+      <workItem from="1708516086799" duration="5901000" />
+      <workItem from="1708525998556" duration="3000" />
+      <workItem from="1708655714498" duration="15000" />
+      <workItem from="1708924960804" duration="13254000" />
+      <workItem from="1708951770408" duration="3519000" />
+      <workItem from="1709017212834" duration="2303000" />
+      <workItem from="1709022193050" duration="22000" />
+      <workItem from="1709118572589" duration="4607000" />
+      <workItem from="1709171171797" duration="15285000" />
+      <workItem from="1709529515460" duration="2213000" />
+      <workItem from="1709616699460" duration="835000" />
+      <workItem from="1709624976995" duration="5879000" />
+      <workItem from="1709789217872" duration="122000" />
+      <workItem from="1709864775932" duration="239000" />
+      <workItem from="1710913134704" duration="31000" />
+      <workItem from="1711433929665" duration="1668000" />
+      <workItem from="1711442827616" duration="1288000" />
+      <workItem from="1711679998370" duration="4480000" />
+      <workItem from="1711958319423" duration="783000" />
+      <workItem from="1712755496514" duration="259000" />
+      <workItem from="1712805493425" duration="3465000" />
+      <workItem from="1712903241745" duration="4143000" />
+      <workItem from="1715675197666" duration="1775000" />
+      <workItem from="1715934147968" duration="963000" />
+      <workItem from="1716289437057" duration="1140000" />
+      <workItem from="1716829323618" duration="1183000" />
+      <workItem from="1717503439620" duration="1046000" />
+      <workItem from="1718013637795" duration="605000" />
+      <workItem from="1736254917650" duration="399000" />
+    </task>
+    <task id="LOCAL-00001" summary="intellij idea, setting">
+      <option name="closed" value="true" />
+      <created>1709630758231</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1709630758232</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="intellij idea, setting" />
+    <option name="LAST_COMMIT_MESSAGE" value="intellij idea, setting" />
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
+  </component>
+</project>

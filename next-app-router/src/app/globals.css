@@ -1,0 +1,54 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+
+}
+
+::-webkit-scrollbar {
+    display: none;
+}
+
+span,h3,h4 {
+    margin: 0;
+}
+
+button {
+    background: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+}
+
+span {
+    color: #fff;
+    font-family: Pretendard;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: normal;
+}
+
+.grayF {
+    color: #9d9d9d !important;
+
+}
+
+.media {
+    display: none !important;
+}
+
+.greenF {
+    color: #24b400;
+}
+
+.redF {
+    color:#D41002;
+}
+
+.center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}

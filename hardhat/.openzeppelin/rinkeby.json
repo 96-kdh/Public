@@ -1,0 +1,379 @@
+{
+  "manifestVersion": "3.2",
+  "admin": {
+    "address": "0x9CD110de7eC99FCba7F1838bA728bA46b2d35b57",
+    "txHash": "0xd577952043133508c69c762721a39cc08e92dc94d73f4f96e0785606514ae66d"
+  },
+  "proxies": [
+    {
+      "address": "0x4DEF9E29daCcE4C951cD7993DE6710Fd4F3F7a35",
+      "txHash": "0xf1ae3373627b77ba5d585b3ffdddbbfa80bb9c2352760c02733818ad627b36f5",
+      "kind": "transparent"
+    }
+  ],
+  "impls": {
+    "16b185fc1bbfb4954924b68689a978d359e735484745d00bffd065407747d454": {
+      "address": "0x96D9f44026617C2e2761CAD485A813795E36F601",
+      "txHash": "0x11e0f09b4bd2aca3ba392565d4f9e4ac80c78190235a17b1e9154975d328fb74",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1155ReceiverUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol:31"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1155HolderUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155HolderUpgradeable.sol:48"
+          },
+          {
+            "label": "_paused",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_bool",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:29"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "252",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:102"
+          },
+          {
+            "label": "initialized",
+            "offset": 0,
+            "slot": "301",
+            "type": "t_bool",
+            "contract": "ERC1155ExchangeCore",
+            "src": "contracts/erc1155/__kip37Factory.sol:139"
+          },
+          {
+            "label": "baseKlaymintWallet",
+            "offset": 1,
+            "slot": "301",
+            "type": "t_address",
+            "contract": "ERC1155ExchangeCore",
+            "src": "contracts/erc1155/__kip37Factory.sol:139"
+          },
+          {
+            "label": "baseKlaymintFee",
+            "offset": 21,
+            "slot": "301",
+            "type": "t_uint16",
+            "contract": "ERC1155ExchangeCore",
+            "src": "contracts/erc1155/__kip37Factory.sol:140"
+          },
+          {
+            "label": "sellOrderBookIndexes",
+            "offset": 0,
+            "slot": "302",
+            "type": "t_mapping(t_bytes32,t_mapping(t_uint256,t_struct(orderIndex)4372_storage))",
+            "contract": "ERC1155ExchangeCore",
+            "src": "contracts/erc1155/__kip37Factory.sol:144"
+          },
+          {
+            "label": "sellOrderBooks",
+            "offset": 0,
+            "slot": "303",
+            "type": "t_mapping(t_bytes32,t_mapping(t_uint256,t_mapping(t_uint256,t_struct(order)4379_storage)))",
+            "contract": "ERC1155ExchangeCore",
+            "src": "contracts/erc1155/__kip37Factory.sol:150"
+          },
+          {
+            "label": "buyOrderBookIndexes",
+            "offset": 0,
+            "slot": "304",
+            "type": "t_mapping(t_bytes32,t_mapping(t_uint256,t_struct(orderIndex)4372_storage))",
+            "contract": "ERC1155ExchangeCore",
+            "src": "contracts/erc1155/__kip37Factory.sol:157"
+          },
+          {
+            "label": "buyOrderBooks",
+            "offset": 0,
+            "slot": "305",
+            "type": "t_mapping(t_bytes32,t_mapping(t_uint256,t_mapping(t_uint256,t_struct(order)4379_storage)))",
+            "contract": "ERC1155ExchangeCore",
+            "src": "contracts/erc1155/__kip37Factory.sol:163"
+          },
+          {
+            "label": "priceBooks",
+            "offset": 0,
+            "slot": "306",
+            "type": "t_mapping(t_bytes32,t_struct(orderPrices)4367_storage)",
+            "contract": "ERC1155ExchangeCore",
+            "src": "contracts/erc1155/__kip37Factory.sol:170"
+          },
+          {
+            "label": "proceedingOrder",
+            "offset": 0,
+            "slot": "307",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "ERC1155ExchangeCore",
+            "src": "contracts/erc1155/__kip37Factory.sol:171"
+          },
+          {
+            "label": "feeBooks",
+            "offset": 0,
+            "slot": "308",
+            "type": "t_mapping(t_address,t_struct(fee)4384_storage)",
+            "contract": "ERC1155ExchangeCore",
+            "src": "contracts/erc1155/__kip37Factory.sol:172"
+          },
+          {
+            "label": "blackList",
+            "offset": 0,
+            "slot": "309",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "ERC1155ExchangeCore",
+            "src": "contracts/erc1155/__kip37Factory.sol:173"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_bytes32)dyn_storage": {
+            "label": "bytes32[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_struct(fee)4384_storage)": {
+            "label": "mapping(address => struct ERC1155ExchangeCore.fee)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_mapping(t_uint256,t_mapping(t_uint256,t_struct(order)4379_storage)))": {
+            "label": "mapping(bytes32 => mapping(uint256 => mapping(uint256 => struct ERC1155ExchangeCore.order)))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_mapping(t_uint256,t_struct(orderIndex)4372_storage))": {
+            "label": "mapping(bytes32 => mapping(uint256 => struct ERC1155ExchangeCore.orderIndex))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(orderPrices)4367_storage)": {
+            "label": "mapping(bytes32 => struct ERC1155ExchangeCore.orderPrices)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_uint256)": {
+            "label": "mapping(bytes32 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(order)4379_storage))": {
+            "label": "mapping(uint256 => mapping(uint256 => struct ERC1155ExchangeCore.order))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(order)4379_storage)": {
+            "label": "mapping(uint256 => struct ERC1155ExchangeCore.order)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(orderIndex)4372_storage)": {
+            "label": "mapping(uint256 => struct ERC1155ExchangeCore.orderIndex)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Set)1792_storage": {
+            "label": "struct EnumerableSet.Set",
+            "members": [
+              {
+                "label": "_values",
+                "type": "t_array(t_bytes32)dyn_storage",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_indexes",
+                "type": "t_mapping(t_bytes32,t_uint256)",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_struct(UintSet)2250_storage": {
+            "label": "struct EnumerableSet.UintSet",
+            "members": [
+              {
+                "label": "_inner",
+                "type": "t_struct(Set)1792_storage",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_struct(fee)4384_storage": {
+            "label": "struct ERC1155ExchangeCore.fee",
+            "members": [
+              {
+                "label": "projectWallet",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "projectFee",
+                "type": "t_uint16",
+                "offset": 20,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(order)4379_storage": {
+            "label": "struct ERC1155ExchangeCore.order",
+            "members": [
+              {
+                "label": "provider",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "amount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "expireTime",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(orderIndex)4372_storage": {
+            "label": "struct ERC1155ExchangeCore.orderIndex",
+            "members": [
+              {
+                "label": "currentTurnOnSaleIndex",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "onSaleIndex",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_struct(orderPrices)4367_storage": {
+            "label": "struct ERC1155ExchangeCore.orderPrices",
+            "members": [
+              {
+                "label": "sellOrderPrices",
+                "type": "t_struct(UintSet)2250_storage",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "buyOrderPrices",
+                "type": "t_struct(UintSet)2250_storage",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_uint16": {
+            "label": "uint16",
+            "numberOfBytes": "2"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    }
+  }
+}
